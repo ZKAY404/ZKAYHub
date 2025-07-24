@@ -48,7 +48,7 @@ do
         Duration = 5 -- Set to nil to make the notification not disappear
     })
 
-    Tabs.Shop:AddTitle("Seed")
+    Tabs.Shop:AddText("Seed")
 
     Tabs.Main:AddButton({
         Title = "Button",
