@@ -43,15 +43,12 @@ local Options = Fluent.Options
 do
     Fluent:Notify({
         Title = "Notification",
-        Content = "This is a notification",
-        SubContent = "SubContent", -- Optional
+        Content = "ZKAYHub Loaded Successfully!",
+        SubContent = "Enjoy using the hub 🩷!", -- Optional
         Duration = 5 -- Set to nil to make the notification not disappear
     })
 
-    Tabs.Main:AddParagraph({
-        Title = "Paragraph",
-        Content = "This is a paragraph.\nSecond line!"
-    })
+    Tabs.Shop:AddTitle("Seed")
 
     Tabs.Main:AddButton({
         Title = "Button",
@@ -250,8 +247,9 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 Window:SelectTab(1)
 
 Fluent:Notify({
-    Title = "Fluent",
-    Content = "The script has been loaded.",
+    Title = "Notification",
+    Content = "ZKAYHub Loaded Successfully!",
+    SubContent = "Enjoy using the hub 🩷!",
     Duration = 8
 })
 
