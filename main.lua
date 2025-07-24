@@ -5,7 +5,7 @@ local InterfaceManager = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "ZKAYHub",
+    Title = "ZKAYHub-[🌙]Grow a Garden🍄[Premium]",
     SubTitle = "by zkayreal",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
@@ -16,14 +16,26 @@ local Window = Fluent:CreateWindow({
 
 -- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 local Tabs = {
-    Main = Window:AddTab({
-        Title = "Main",
+    Shop = Window:AddTab({
+        Title = "Shop",
         Icon = ""
     }),
-    Settings = Window:AddTab({
-        Title = "Settings",
-        Icon = "settings"
-    })
+    Farming = Window:AddTab({
+        Title = "Farming",
+        Icon = ""
+    }),
+    Misc = Window:AddTab({
+        Title = "Misc",
+        Icon = ""
+    }),
+    Webhook = Window:AddTab({
+        Title = "Tab Webhook",
+        Icon = ""
+    }),
+    Info = Window:AddTab({
+        Title = "Info Anh Join Server",
+        Icon = ""
+    }),
 }
 
 local Options = Fluent.Options
