@@ -5,7 +5,7 @@ local InterfaceManager = loadstring(game:HttpGet(
     "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "ZKAYHub-[🌙]Grow a Garden🍄[Premium]",
+    Title = "ZKAYHub-[🌱]Grow a Garden☘️[Freemium]",
     SubTitle = "by zkayreal",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
@@ -13,6 +13,35 @@ local Window = Fluent:CreateWindow({
     Theme = "Dark",
     MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
 })
+
+-- Create ScreenGui in CoreGui for highest visibility
+local ToggleGui = Instance.new("ScreenGui")
+ToggleGui.Name = "ToggleGui"
+ToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ToggleGui.ResetOnSpawn = false
+ToggleGui.DisplayOrder = 999999
+ToggleGui.IgnoreGuiInset = true
+ToggleGui.Parent = game:GetService("CoreGui")
+
+-- Create circular ImageButton
+local Toggle = Instance.new("ImageButton")
+Toggle.Name = "Toggle"
+Toggle.Parent = ToggleGui
+Toggle.BackgroundTransparency = 1
+Toggle.Position = UDim2.new(0, 10, 0.2, 0)
+Toggle.Size = UDim2.new(0, 60, 0, 60) -- size of the circle
+Toggle.Image = "rbxassetid://131658654015166"
+
+-- Round it into a perfect circle using UICorner
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(1, 0) -- fully rounded
+UICorner.Parent = Toggle
+Toggle.MouseButton1Click:connect(function()
+    local vim = game:service("VirtualInputManager")
+    vim:SendKeyEvent(true, Enum.KeyCode.LeftControl, false, nil)
+    task.wait(0.1)
+    vim:SendKeyEvent(false, Enum.KeyCode.LeftControl, false, nil)
+end)
 
 -- Fluent provides Lucide Icons https://lucide.dev/icons/ for the tabs, icons are optional
 local Tabs = {
@@ -35,188 +64,433 @@ local Tabs = {
     Info = Window:AddTab({
         Title = "Info Anh Join Server",
         Icon = ""
-    }),
+    })
 }
 
 local Options = Fluent.Options
 
 do
-    Fluent:Notify({
-        Title = "Notification",
-        Content = "ZKAYHub Loaded Successfully!",
-        SubContent = "Enjoy using the hub 🩷!", -- Optional
-        Duration = 5 -- Set to nil to make the notification not disappear
+
+    Tabs.Shop:AddSection("Merchant")
+
+    local MerchantDropdown = Tabs.Shop:AddDropdown("MerchantDropdown", {
+        Title = "Select Item Shop Merchant",
+        Values = {"Prickly Pear Seed", "Cauliflower Seed", "Kiwi Seed", "Avocado Seed", "Bell Pepper Seed",
+                  "Loquat Seed", "Pitcher Plant", "Green Apple Seed", "Feijoa Seed", "Pineapple Seed", "Rafflesia Seed",
+                  "Banana Seed", "Mutation Spray Verdant", "Mutation Spray Wet", "Mutation Spray Disco",
+                  "Mutation Spray Windstruck", "Flower Seed Pack", "Bee Egg", "Bee Crate", "Honey Sprinkler",
+                  "Honey Crafters Crate", "Iconic Gnome Crate", "Common Gnome Crate", "Farmers Gnome Crate",
+                  "Mutation Spray Cloudtouched", "Star Caller", "Night Staff", "Firework Flower", "Firework",
+                  "July 4th Crate", "Bald Eagle", "Liberty Lily"},
+        Multi = true,
+        Default = {}
     })
 
-    Tabs.Shop:AddText("Seed")
-
-    Tabs.Main:AddButton({
-        Title = "Button",
-        Description = "Very important button",
-        Callback = function()
-            Window:Dialog({
-                Title = "Title",
-                Content = "This is a dialog",
-                Buttons = {{
-                    Title = "Confirm",
-                    Callback = function()
-                        print("Confirmed the dialog.")
-                    end
-                }, {
-                    Title = "Cancel",
-                    Callback = function()
-                        print("Cancelled the dialog.")
-                    end
-                }}
-            })
-        end
-    })
-
-    local Toggle = Tabs.Main:AddToggle("MyToggle", {
-        Title = "Toggle",
+    local MerchantToggle = Tabs.Shop:AddToggle("MerchantToggle", {
+        Title = "Auto Buy Shop Merchant",
         Default = false
     })
 
-    Toggle:OnChanged(function()
-        print("Toggle changed:", Options.MyToggle.Value)
-    end)
+    MerchantToggle:OnChanged(function()
+        while Options.MerchantToggle.Value do
+            local selectedMerchants = {}
+            for merchantName, isSelected in pairs(Options.MerchantDropdown.Value) do
+                if isSelected then
+                    table.insert(selectedMerchants, merchantName)
+                end
+            end
+            for _, merchant in ipairs(selectedMerchants) do
+                local frame =
+                    game:GetService("Players").LocalPlayer.PlayerGui.EventShop_UI.Frame.ScrollingFrame:FindFirstChild(
+                        merchant)
+                if frame and frame.Main_Frame and frame.Main_Frame.Stock_Text then
+                    local stockText = frame.Main_Frame.Stock_Text.Text
+                    local stock = tonumber(stockText:match("%d+")) or 0
 
-    Options.MyToggle:SetValue(false)
-
-    local Slider = Tabs.Main:AddSlider("Slider", {
-        Title = "Slider",
-        Description = "This is a slider",
-        Default = 2,
-        Min = 0,
-        Max = 5,
-        Rounding = 1,
-        Callback = function(Value)
-            print("Slider was changed:", Value)
+                    if stock > 0 then
+                        game:GetService("ReplicatedStorage").GameEvents.BuyTravelingMerchantStock:FireServer(merchant)
+                    end
+                end
+            end
+            task.wait(0.01) -- Cooldown between checks
         end
-    })
-
-    Slider:OnChanged(function(Value)
-        print("Slider changed:", Value)
     end)
 
-    Slider:SetValue(3)
+    Tabs.Shop:AddSection("Shop Beanstalk Event")
 
-    local Dropdown = Tabs.Main:AddDropdown("Dropdown", {
-        Title = "Dropdown",
-        Values = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
-                  "thirteen", "fourteen"},
-        Multi = false,
-        Default = 1
-    })
-
-    Dropdown:SetValue("four")
-
-    Dropdown:OnChanged(function(Value)
-        print("Dropdown changed:", Value)
-    end)
-
-    local MultiDropdown = Tabs.Main:AddDropdown("MultiDropdown", {
-        Title = "Dropdown",
-        Description = "You can select multiple values.",
-        Values = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
-                  "thirteen", "fourteen"},
+    local BeanDropdown = Tabs.Shop:AddDropdown("BeanDropdown", {
+        Title = "Select Item Shop Beanstalk",
+        Values = {"Bean Gnome Crate", "Beanflare", "Hot Spring", "Bean Seed Pack", "Bean Sand", "Bean Crate",
+                  "Tranquil Radar", "Pet Shard Tranquil", "Bean Egg", "Spiked Mango", "Koi", "Soft Sunshine"},
         Multi = true,
-        Default = {"seven", "twelve"}
+        Default = {}
     })
 
-    MultiDropdown:SetValue({
-        three = true,
-        five = true,
-        seven = false
+    local BeanToggle = Tabs.Shop:AddToggle("BeanToggle", {
+        Title = "Auto Buy Shop Bean",
+        Default = false
     })
 
-    MultiDropdown:OnChanged(function(Value)
-        local Values = {}
-        for Value, State in next, Value do
-            table.insert(Values, Value)
+    BeanToggle:OnChanged(function()
+        while Options.BeanToggle.Value do
+            local selectedBeans = {}
+            for beanName, isSelected in pairs(Options.BeanDropdown.Value) do
+                if isSelected then
+                    table.insert(selectedBeans, beanName)
+                end
+            end
+            for _, bean in ipairs(selectedBeans) do
+                local frame =
+                    game:GetService("Players").LocalPlayer.PlayerGui.EventShop_UI.Frame.ScrollingFrame:FindFirstChild(
+                        bean)
+                if frame and frame.Main_Frame and frame.Main_Frame.Stock_Text then
+                    local stockText = frame.Main_Frame.Stock_Text.Text
+                    local stock = tonumber(stockText:match("%d+")) or 0
+
+                    if stock > 0 then
+                        game:GetService("ReplicatedStorage").GameEvents.BuyEventShopStock:FireServer(bean)
+                    end
+                end
+            end
+            task.wait(0.01) -- Cooldown between checks
         end
-        print("Mutlidropdown changed:", table.concat(Values, ", "))
     end)
 
-    local Colorpicker = Tabs.Main:AddColorpicker("Colorpicker", {
-        Title = "Colorpicker",
-        Default = Color3.fromRGB(96, 205, 255)
+    Tabs.Shop:AddSection("Shop Seeds")
+
+    local SeedsDropdown = Tabs.Shop:AddDropdown("SeedsDropdown", {
+        Title = "Select Seed",
+        Values = {"Carrot Seed", "Strawberry Seed", "Blueberry Seed", "Orange Tulip", "Tomato Seed", "Corn Seed",
+                  "Daffodil Seed", "Watermelon Seed", "Pumpkin Seed", "Apple Seed", "Bamboo Seed", "Coconut Seed",
+                  "Cactus Seed", "Dragon Fruit Seed", "Mango Seed", "Grape Seed", "Mushroom Seed", "Pepper Seed",
+                  "Cacao Seed", "Beanstalk Seed", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone Seed"},
+        Multi = true,
+        Default = {}
     })
 
-    Colorpicker:OnChanged(function()
-        print("Colorpicker changed:", Colorpicker.Value)
-    end)
-
-    Colorpicker:SetValueRGB(Color3.fromRGB(0, 255, 140))
-
-    local TColorpicker = Tabs.Main:AddColorpicker("TransparencyColorpicker", {
-        Title = "Colorpicker",
-        Description = "but you can change the transparency.",
-        Transparency = 0,
-        Default = Color3.fromRGB(96, 205, 255)
+    local SeedsToggle = Tabs.Shop:AddToggle("SeedsToggle", {
+        Title = "Auto Buy Seed",
+        Default = false
     })
 
-    TColorpicker:OnChanged(function()
-        print("TColorpicker changed:", TColorpicker.Value, "Transparency:", TColorpicker.Transparency)
-    end)
+    SeedsToggle:OnChanged(function()
+        while Options.SeedsToggle.Value do
+            local selectedSeeds = {}
+            for seedName, isSelected in pairs(Options.SeedsDropdown.Value) do
+                if isSelected then
+                    table.insert(selectedSeeds, seedName)
+                end
+            end
+            for _, seed in ipairs(selectedSeeds) do
+                local cleanName = seed:gsub(" Seed$", "")
+                local frame =
+                    game:GetService("Players").LocalPlayer.PlayerGui.Seed_Shop.Frame.ScrollingFrame:FindFirstChild(
+                        cleanName)
+                if frame and frame.Main_Frame and frame.Main_Frame.Stock_Text then
+                    local stockText = frame.Main_Frame.Stock_Text.Text
+                    local stock = tonumber(stockText:match("%d+")) or 0
 
-    local Keybind = Tabs.Main:AddKeybind("Keybind", {
-        Title = "KeyBind",
-        Mode = "Toggle", -- Always, Toggle, Hold
-        Default = "LeftControl", -- String as the name of the keybind (MB1, MB2 for mouse buttons)
-
-        -- Occurs when the keybind is clicked, Value is `true`/`false`
-        Callback = function(Value)
-            print("Keybind clicked!", Value)
-        end,
-
-        -- Occurs when the keybind itself is changed, `New` is a KeyCode Enum OR a UserInputType Enum
-        ChangedCallback = function(New)
-            print("Keybind changed!", New)
+                    if stock > 0 then
+                        game:GetService("ReplicatedStorage").GameEvents.BuySeedStock:FireServer(cleanName)
+                    end
+                end
+            end
+            task.wait(0.01) -- Cooldown between checks
         end
+    end)
+
+    Tabs.Shop:AddSection("Shop Gears")
+
+    local GearsDropdown = Tabs.Shop:AddDropdown("GearsDropdown", {
+        Title = "Select Gear",
+        Values = {"Watering Can", "Trowel", "Recall Wrench", "Basic Sprinkler", "Advanced Sprinkler", "Medium Toy",
+                  "Medium Treat", "Godly Sprinkler", "Magnifying Glass", "Tanning Mirror", "Master Sprinkler",
+                  "Cleaning Spray", "Favorite Tool", "Harvest Tool", "Friendship Pot", "Levelup Lollipop"},
+        Multi = true,
+        Default = {}
     })
 
-    -- OnClick is only fired when you press the keybind and the mode is Toggle
-    -- Otherwise, you will have to use Keybind:GetState()
-    Keybind:OnClick(function()
-        print("Keybind clicked:", Keybind:GetState())
+    local GearsToggle = Tabs.Shop:AddToggle("GearsToggle", {
+        Title = "Auto Buy Gear",
+        Default = false
+    })
+
+    GearsToggle:OnChanged(function()
+        while Options.GearsToggle.Value do
+            local selectedGears = {}
+            for gearName, isSelected in pairs(Options.GearsDropdown.Value) do
+                if isSelected then
+                    table.insert(selectedGears, gearName)
+                end
+            end
+            for _, gear in ipairs(selectedGears) do
+                local frame =
+                    game:GetService("Players").LocalPlayer.PlayerGui.Gear_Shop.Frame.ScrollingFrame:FindFirstChild(gear)
+                if frame and frame.Main_Frame and frame.Main_Frame.Stock_Text then
+                    local stockText = frame.Main_Frame.Stock_Text.Text
+                    local stock = tonumber(stockText:match("%d+")) or 0
+
+                    if stock > 0 then
+                        game:GetService("ReplicatedStorage").GameEvents.BuyGearStock:FireServer(gear)
+                    end
+                end
+            end
+            task.wait(0.01) -- Cooldown between checks
+        end
     end)
 
-    Keybind:OnChanged(function()
-        print("Keybind changed:", Keybind.Value)
+    Tabs.Shop:AddSection("Shop Eggs")
+
+    local EggsDropdown = Tabs.Shop:AddDropdown("EggsDropdown", {
+        Title = "Select Egg",
+        Values = {"Common Egg", "Common Summer Egg", "Rare Summer Egg", "Mythical Egg", "Paradise Egg", "Bug Egg"},
+        Multi = true,
+        Default = {}
+    })
+
+    local EggsToggle = Tabs.Shop:AddToggle("EggsToggle", {
+        Title = "Auto Buy Egg",
+        Default = false
+    })
+
+    EggsToggle:OnChanged(function()
+        while Options.EggsToggle.Value do
+            local selectedEggs = {}
+            for eggName, isSelected in pairs(Options.EggsDropdown.Value) do
+                if isSelected then
+                    table.insert(selectedEggs, eggName)
+                end
+            end
+            for _, egg in ipairs(selectedEggs) do
+                local frame =
+                    game:GetService("Players").LocalPlayer.PlayerGui.PetShop_UI.Frame.ScrollingFrame:FindFirstChild(egg)
+                if frame and frame.Main_Frame and frame.Main_Frame.Stock_Text then
+                    local stockText = frame.Main_Frame.Stock_Text.Text
+                    local stock = tonumber(stockText:match("%d+")) or 0
+
+                    if stock > 0 then
+                        game:GetService("ReplicatedStorage").GameEvents.BuyPetEgg:FireServer(egg)
+                    end
+                end
+            end
+            task.wait(0.01) -- Cooldown between checks
+        end
     end)
 
-    task.spawn(function()
-        while true do
-            wait(1)
+    Tabs.Farming:AddSection("Auto Collect")
 
-            -- example for checking if a keybind is being pressed
-            local state = Keybind:GetState()
-            if state then
-                print("Keybind is being held down")
+    Tabs.Farming:AddParagraph({
+        Title = "About Select Method:",
+        Content = "Auto Collect will ignore what u have choosen"
+    })
+
+    local MutationDropdown = Tabs.Farming:AddDropdown("MutationDropdown", {
+        Title = "Select Mutation",
+        Values = {"Wet", "Windstruck", "Moonlit", "Chilled", "Choc", "Pollinated", "Sandy", "Clay", "Verdant", "Bloodlit", "Twisted", "Drenched", "HoneyGlazed",
+        "Cloudtouched", "Frobean", "Tempestuous", "Aurora", "Shocked", "Celestial", "Dawnbound", "Burnt", "Wiltproof", "Plasma", "Heavenly", "Fried", "Amber",
+        "Cooked", "Toxic", "Chakra", "Eclipsed", "Tranquil", "OldAmber", "Zombified", "Molten", "Ceramic", "Enlightened", "AncientAmber", "Friendbound",
+        "Infected", "Radioactive", "Sundried", "FoxfireChakra", "Paradisal", "Alienlike", "Galactic", "Disco", "Meteoric", "Voidtouched"},
+        Multi = true,
+        Default = {}
+    })
+
+    local VariantDropdown = Tabs.Farming:AddDropdown("VariantDropdown", {
+        Title = "Select Variant",
+        Values = {"Gold", "Rainbow"},
+        Multi = true,
+        Default = {}
+    })
+
+    local FruitDropdown = Tabs.Farming:AddDropdown("FruitDropdown", {
+        Title = "Select Fruit",
+        Values = {"Carrot", "Strawberry", "Pink Tulip", "Chocolate Carrot",
+        "Blueberry", "Rose", "Orange Tulip", "Monoblooma", "Red Lollipop", "Nightshade", "Crocus", "Lavender", "Manuka Flower", "Wild Carrot", "Blue Lollipop", "Stonebite",
+        "Tomato", "Daffodil", "Cauliflower", "Raspberry", "Foxglove", "Peace Lily", "Corn", "Horsetail", "Beanflare", "Serenity", "Candy Sunflower", "Mint", "Glowshroom", "Dandelion", "Nectarshade", "Succulent", "Bee Balm", "Pear", "Delphinium", "Liberty Lily", "Noble Flower", "Paradise Petal",
+        "Watermelon", "Pumpkin", "Avocado", "Green Apple", "Apple", "Banana", "Lilac", "Taro Flower", "Bamboo", "Rafflesia", "Lingonberry", "Soft Sunshine", "Cranberry", "Durian", "Papaya", "Moonflower", "Starfruit", "Lumira", "Violet Corn", "Nectar Thorn", "Cantaloupe", "Aloe Vera", "Firework Flower", "Dragon Sapling", "Horned Dinoshroom", "Boneboo",
+        "Peach", "Pineapple", "Amber Spine", "Coconut", "Cactus", "Dragon Fruit", "Mango", "Kiwi", "Bell Pepper", "Prickly Pear", "Pink Lily", "Purple Dahlia", "Hinomai", "Bean Rocks", "Spiked Mango", "Easter Egg", "Eggplant", "Passionfruit", "Lemon", "Moonglow", "Moon Melon", "Blood Banana", "Celestiberry", "Guanabana", "Nectarine", "Honeysuckle", "Suncoil", "Bendboo", "Cocovine", "Parasol Flower", "Lily Of The Valley", "Firefly Fern", "Moon Mango",
+        "Grape", "Loquat", "Mushroom", "Pepper", "Cacao", "Feijoa", "Pitcher Plant", "Grand Volcania", "Sunflower", "Maple Apple", "Candy Blossom", "Cherry Blossom", "Crimson Vine", "Lotus", "Venus Fly Trap", "Cursed Fruit", "Soul Fruit", "Mega Mushroom", "Moon Blossom", "Hive Fruit", "Dragon Pepper", "Rosy Delight", "Traveler's Fruit", "Fossilight",
+        "Beanstalk", "Ember Lily", "Sugar Apple", "Burning Bud", "Giant Pinecone", "Elephant Ears",
+        "Bone Blossom"},
+        Multi = true,
+        Default = {}
+    })
+
+    local WeatherCollect = Tabs.Farming:AddToggle("WeatherCollect", {
+        Title = "Collect during weather events",
+        Default = false
+    })
+
+    local AutoCollect = Tabs.Farming:AddToggle("AutoCollect", {
+        Title = "Auto Collect",
+        Default = false
+    })
+
+    AutoCollect:OnChanged(function()
+        if not Options.AutoCollect.Value then return end
+
+        task.spawn(function()
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+
+            local function isWeatherActive()
+                local ui = LocalPlayer:FindFirstChild("PlayerGui"):FindFirstChild("Bottom_UI")
+                local list = ui and ui:FindFirstChild("BottomFrame") and ui.BottomFrame:FindFirstChild("Holder") and ui.BottomFrame.Holder:FindFirstChild("List")
+                if not list then return false end
+
+                for _, child in ipairs(list:GetChildren()) do
+                    if child:IsA("UIListLayout") then continue end
+                    if child:IsA("GuiObject") and (child.Visible or child.Active) then
+                        return true
+                    end
+                end
+                return false
             end
 
-            if Fluent.Unloaded then
-                break
+            local function countKG()
+                local total = 0
+                for _, src in ipairs({LocalPlayer:FindFirstChild("Backpack"), workspace:FindFirstChild("ZKAY404ERROR")}) do
+                    if src then
+                        for _, item in ipairs(src:GetChildren()) do
+                            if item:IsA("Tool") and item.Name:find("kg") then
+                                total += 1
+                            end
+                        end
+                    end
+                end
+                return total
             end
-        end
+
+            local function getMyFarm()
+                local farms = workspace:FindFirstChild("Farm")
+                if not farms then return nil end
+                for _, f in ipairs(farms:GetChildren()) do
+                    local owner = f:FindFirstChild("Important") and f.Important:FindFirstChild("Data") and f.Important.Data:FindFirstChild("Owner")
+                    if owner and owner.Value == LocalPlayer.Name then
+                        return f
+                    end
+                end
+            end
+
+            local function toSet(m)
+                local set = {}
+                for k, v in pairs(m or {}) do
+                    if v then set[k] = true end
+                end
+                return set
+            end
+
+            local function passBlacklist(val, set)
+                if not set or next(set) == nil then return true end
+                return not set[val]
+            end
+
+            local function passMutationBlacklist(inst, set)
+                if not set or next(set) == nil then return true end
+                for mutName in pairs(set) do
+                    if inst:GetAttribute(mutName) == true then
+                        return false
+                    end
+                end
+                return true
+            end
+
+            local function passesFilter(inst)
+                local fruitSet = toSet(Options.FruitDropdown.Value)
+                local variantSet = toSet(Options.VariantDropdown.Value)
+                local mutationSet = toSet(Options.MutationDropdown.Value)
+
+                local fruitName = inst.Name
+                local variantVal = inst:FindFirstChild("Variant") and inst.Variant.Value or nil
+
+                return passBlacklist(fruitName, fruitSet)
+                    and passBlacklist(variantVal, variantSet)
+                    and passMutationBlacklist(inst, mutationSet)
+            end
+
+            while Options.AutoCollect.Value do
+                if not Options.WeatherCollect.Value and isWeatherActive() then
+                    task.wait(0.5)
+                    continue
+                end
+
+                if countKG() >= 200 then
+                    task.wait(0.5)
+                    continue
+                end
+
+                local farm = getMyFarm()
+                if not farm then
+                    task.wait(0.5)
+                    continue
+                end
+
+                local phys = farm:FindFirstChild("Important") and farm.Important:FindFirstChild("Plants_Physical")
+                if not phys then
+                    task.wait(0.5)
+                    continue
+                end
+
+                for _, plant in ipairs(phys:GetChildren()) do
+                    if countKG() >= 200 then break end
+
+                    local targets = {}
+                    local fruitsFolder = plant:FindFirstChild("Fruits")
+                    if fruitsFolder and #fruitsFolder:GetChildren() > 0 then
+                        for _, fruit in ipairs(fruitsFolder:GetChildren()) do
+                            table.insert(targets, fruit)
+                        end
+                    else
+                        table.insert(targets, plant)
+                    end
+
+                    for _, inst in ipairs(targets) do
+                        if countKG() >= 200 then break end
+                        if not passesFilter(inst) then continue end
+                        game:GetService("ReplicatedStorage").ByteNetReliable:FireServer(buffer.fromstring("\001\001\000\001"), {inst})
+                        task.wait(0.1)
+                    end
+                end
+            end
+        end)
     end)
 
-    Keybind:SetValue("MB2", "Toggle") -- Sets keybind to MB2, mode to Hold
+    Tabs.Farming:AddSection("Sell")
 
-    local Input = Tabs.Main:AddInput("Input", {
-        Title = "Input",
-        Default = "Default",
-        Placeholder = "Placeholder",
-        Numeric = false, -- Only allows numbers
-        Finished = false, -- Only calls callback when you press enter
-        Callback = function(Value)
-            print("Input changed:", Value)
-        end
+    local InputSlot = Tabs.Farming:AddInput("InputSlot", {
+        Title = "Amount Fruit To Sell",
+        Default = "200",
     })
 
-    Input:OnChanged(function()
-        print("Input updated:", Input.Value)
+    local AutoSell = Tabs.AddToggle("AutoSell", {
+        Title = "Auto Sell",
+        Default = false,
+    })
+
+    AutoSell:OnChanged(function()
+        while Options.AutoSell.Value do
+            local Players = game:GetService("Players")
+            local LocalPlayer = Players.LocalPlayer
+            local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+            if not HRP then return end
+            local function countKG()
+                local total = 0
+                for _, src in ipairs({LocalPlayer:FindFirstChild("Backpack"), workspace:FindFirstChild("ZKAY404ERROR")}) do
+                    if src then
+                        for _, item in ipairs(src:GetChildren()) do
+                            if item:IsA("Tool") and item.Name:find("kg") then
+                                total += 1
+                            end
+                        end
+                    end
+                end
+                return total
+            end
+            if countKG() >= 200 then
+                HRP.CFrame = workspace.NPCS.Steven.HumanoidRootPart.CFrame
+                game:GetService("ReplicatedStorage").GameEvents.Sell_Inventory:FireServer()
+                task.wait(1)
+            end
+        end
     end)
 end
 
@@ -241,18 +515,28 @@ SaveManager:SetIgnoreIndexes({})
 InterfaceManager:SetFolder("ZKAYHub")
 SaveManager:SetFolder("ZKAYHub")
 
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
-
-Window:SelectTab(1)
+-- You can use the SaveManager:LoadAutoloadConfig() to load a config
+-- which has been marked to be one that auto loads!
+local player = game:GetService("Players").LocalPlayer
+local username = player.Name
+SaveManager:Load(username .. "-GAG")
 
 Fluent:Notify({
     Title = "Notification",
     Content = "ZKAYHub Loaded Successfully!",
-    SubContent = "Enjoy using the hub 🩷!",
+    SubContent = "Enjoy using the hub ♡!",
     Duration = 8
 })
 
--- You can use the SaveManager:LoadAutoloadConfig() to load a config
--- which has been marked to be one that auto loads!
-SaveManager:LoadAutoloadConfig()
+while true do
+    local result
+    local success, err = pcall(function()
+        result = SaveManager:Save(username .. "-GAG")
+    end)
+    
+    if not success then
+        warn("Auto-save failed:", result)
+    end
+    
+    task.wait(1) -- Wait exactly 1 second between saves
+end
