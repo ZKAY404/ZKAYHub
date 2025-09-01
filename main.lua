@@ -474,7 +474,7 @@ do
             if not HRP then return end
             local function countKG()
                 local total = 0
-                for _, src in ipairs({LocalPlayer:FindFirstChild("Backpack"), workspace:FindFirstChild("ZKAY404ERROR")}) do
+                for _, src in ipairs({LocalPlayer:FindFirstChild("Backpack"), workspace:FindFirstChild(LocalPlayer.Name)}) do
                     if src then
                         for _, item in ipairs(src:GetChildren()) do
                             if item:IsA("Tool") and item.Name:find("kg") then
