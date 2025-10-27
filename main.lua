@@ -461,7 +461,7 @@ do
         Default = "200",
     })
 
-    local AutoSell = Tabs.AddToggle("AutoSell", {
+    local AutoSell = Tabs.Farming:AddToggle("AutoSell", {
         Title = "Auto Sell",
         Default = false,
     })
@@ -539,4 +539,5 @@ while true do
     end
     
     task.wait(1) -- Wait exactly 1 second between saves
+
 end
