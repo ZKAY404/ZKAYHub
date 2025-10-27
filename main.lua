@@ -446,7 +446,7 @@ do
                     for _, inst in ipairs(targets) do
                         if countKG() >= 200 then break end
                         if not passesFilter(inst) then continue end
-                        game:GetService("ReplicatedStorage").ByteNetReliable:FireServer(buffer.fromstring("\001\001\000\001"), {inst})
+                        game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("Crops"):WaitForChild("Collect"):FireServer({inst})
                         task.wait(0.1)
                     end
                 end
@@ -541,3 +541,4 @@ while true do
     task.wait(1) -- Wait exactly 1 second between saves
 
 end
+
